@@ -13,7 +13,7 @@ New Zealand election rules are [Mixed Member Proportional](https://en.wikipedia.
 
 This math optimization problem is designed for sensitivity analysis on preliminary results, evaluating the minimum effort that an union of party needs, to change the status of whether is it the majority of parliament. It is an integer minimum perturbation problem about votes modification.
 
-[Election rules and model definition](./model.md)
+[Election rules and model definition](./model.pdf)
 
 
 
@@ -40,5 +40,4 @@ python get_electorates_list_rnz_preliminary.py
 python get_parties_rnz.py
 python get_votes_rnz_preliminary.py
 ```
-
 

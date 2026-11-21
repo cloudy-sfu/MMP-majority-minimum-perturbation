@@ -1,4 +1,4 @@
-# Minimum vote modifications for a parliamentary majority change
+# Minimum votes modification for a parliamentary majority change
 
 
 
@@ -14,14 +14,7 @@ If the union is currently the strict majority (excluding hung parliament), the t
 >
 >   We assume independent members of parliament are always opposite to the selected union. The union cannot include independent members of parliament.
 
-The official tie-breaking algorithm is random drawing. Because we use deterministic optimization instead of stochastic optimization, we always solve two models with shared definition of the objective and other constraints:
-
--   Possible success: Any admissible tie-breaking outcome is feasible;
--   Guaranteed success: All admissible tie-breaking outcomes are feasible.
-
-The primary outputs are two separate Pareto frontiers in the objective space of added ballots and transferred ballots. The possible-success frontier records nondominated modification costs permitting success under at least one admissible tie outcome. The guaranteed-success frontier records nondominated modification costs ensuring success under every admissible tie outcome.
-
-![structure](./assets/structure.png)
+The primary outputs are two separate Pareto frontiers of votes modification that changes the majority status. Because official tie breaking algorithm has randomness, the possible-success frontier records non-dominated results under at least one admissible tie breaking outcome, and the guaranteed-success frontier records non-dominated results under every admissible tie breaking outcome.
 
 ## Election rules
 
@@ -47,6 +40,13 @@ Two seats allocation rules are executed in parallel:
 | ------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | Proportional seats | Parliament seats to be allocated to each party by proportion of party ballots. | The winner of each electorate gets 1 parliament seat for their party, and the winner themselves become parliament members. |
 | Electorate seats   | Parliament seats to be allocated to each party from electorate winners. | The baseline of parliament size is 120. First, all independent candidates as the winner of their electorates directly have a parliament seat. Then, the remaining seats (less than or equal to 120) are allocated to eligible parties. To be eligible, a party should get at least 5% of all party ballots, or is the winner of at least 1 electorate. Seats allocation is processed by Sainte-Laguë highest-average method, based on the number of party ballots among all eligible parties. If quotients of multiple party are the same when allocating the last seat in Sainte-Laguë process, the election office draws one of them randomly. The party will list party members to become parliament members for these seats. |
+
+Tie happens in two cases:
+
+1.   When multiple candidates have the same number of votes in an electorate.
+2.   When multiple quotients in Sainte-Laguë process are equal.
+
+The official tie-breaking algorithm is random drawing.
 
 >   [!note]
 >
@@ -174,6 +174,31 @@ $$
 >   $$
 >   Similar things happen to $c'(e, r)$.
 
+### Tie breaking
+
+There are two definition of tie breaking without randomness.
+
+-   Possible success: At least one admissible tie resolution achieves the selected majority change for the modification plan.
+-   Guaranteed success: Every admissible tie resolution achieves the selected majority change for the same modification plan.
+
+Let $\eta(\cdot)$ be tie-priority settings.
+
+For an electorate $e \in E$ and two distinct ballot options $r, s \in R_e$, let
+$$
+\eta(e, r, s) = \begin{cases}
+1, \quad \text{if~} s \text{~has priority over~} r \\
+0, \quad \text{otherwise}
+\end{cases}
+$$
+For two distinct parties $p, q \in P$, let
+$$
+\eta(p, q) = \begin{cases}
+1, \quad \text{if~} q \text{~has priority over~} p \\
+0, \quad \text{otherwise}
+\end{cases}
+$$
+Let $\mathcal H$ be the set of all complete tie-priority settings obtained by combining the possible electorate orders and party orders. The pairwise values come from those orders. Reverse comparisons have complementary values, and cyclic priorities are not allowed. The set $\mathcal H$ is defined independently of the votes modification. Modified votes determine whether a priority comparison matters, not which settings are in $\mathcal H$.
+
 ### Electorate seats
 
 Let $w(e,r)\in\{0,1\}, e\in E,\ r\in R_e$  indicate that ballot option $r$ wins electorate $e$.
@@ -194,16 +219,10 @@ Each electorate has exactly one winner
 $$
 \sum_{r\in R_e}w(e,r)=1, \quad e\in E
 $$
-An electorate winner must have the most candidate ballots
+A winner must defeat every other ballot option by final votes, using the fixed electorate priority only at equality. For each electorate $e$ and each pair of distinct options $r$ and $s$ in $R_e$, there is
 $$
-w(e, r) = 1 \implies c'(e,r)\ge c'(e,s), \quad s\in R_e \setminus \{r\}
+w(e, r) = 1 \implies c'(e,r) - c'(e,s) \ge \eta(e, r, s), \quad s\in R_e \setminus \{r\}
 $$
-
->   [!note]
->   $$
->   w(e,r)=\mathbb{1}[c'(e,r)\ge c'(e,s), \forall s\in R_e \setminus \{r\}], \quad e\in E,\ r\in R_e
->   $$
->   is not correct, because it makes every tied top candidate a winner.
 
 ### Proportional seats
 
@@ -253,8 +272,11 @@ A selected quotient must be larger than or equal to every unselected quotient
 $$
 z(p,k)=1 \and z(q,j)=0 \and g(q)=1 \\
 p,q\in P, \quad p\ne q, \quad k,j=1,...,N \\
-\implies {v'(p) \over 2k-1} \ge {v'(q) \over 2j-1} \\
-\overset{\text{linearity}}{\implies} (2j-1) v'(p) \ge (2k-1) v'(q)
+\implies \begin{cases}
+\frac{v'(p)}{2k-1} \ge \frac{v'(q)}{2j-1}, \quad \text{if~} \eta(p, q) = 0  \\
+\frac{v'(p)}{2k-1} > \frac{v'(q)}{2j-1}, \quad \text{if~} \eta(p, q) = 1  \\
+\end{cases} \\
+\overset{\text{linearity}}{\implies} (2j-1) v'(p)  - (2k-1) v'(q) \ge \eta(p, q)
 $$
 
 >   [!note]
@@ -284,24 +306,28 @@ The strict majority margin is
 $$
 m=2S-H
 $$
-Compared to majority margin of baseline, the margin should change the status of majority
-$$
-C(m) = \mathbb{1}[(2m_0 - 1)(2m - 1) \le -1]
-$$
-
->   [!note]
->
->   Equivalent to
->   $$
->   C(m) = \begin{cases}
->   \mathbb{1}[m > 0], \quad m_0 \le 0 \\
->   \mathbb{1}[m \le 0], \quad m_0 > 0
->   \end{cases}
->   $$
 
 ## Objective
 
-The objective is bi-objective Pareto minimization
+The baseline margin $m_0$ is an constant. The combination of given $x = (A, J, K)$ and $\eta \in \mathcal{H}$ will determine $m$.
+
+The success condition (of majority change) is
+$$
+\begin{cases}
+m \ge 1, \quad \text{if~} m_0 \le 0 \\
+m \le 0, \quad \text{if~} m_0 > 0
+\end{cases}
+$$
+Let $F(\eta), \eta \in \mathcal{H}$ be the feasible set of votes modification $x$ and satisfied the success condition under given $\eta$.
+
+Let $\underline{F}$ be the feasible set of "possible success", $\overline{F}$ be that of "guaranteed success".
+$$
+\underline{F} = \bigcup_{\eta \in \mathcal{H}} F(\eta) \\
+\overline{F} = \bigcap_{\eta \in \mathcal{H}} F(\eta)
+$$
+The objective is bi-objective optimization
 $$
 \min (\alpha, \delta)
 $$
+Use the same objective in two models: possible success model requires $x \in \underline{F}$, and guaranteed success model requires $x \in \overline{F}$.
+

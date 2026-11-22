@@ -38,8 +38,8 @@ Two seats allocation rules are executed in parallel:
 
 | Allocated seats    | Definition                                                   | Process                                                      |
 | ------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| Proportional seats | Parliament seats to be allocated to each party by proportion of party ballots. | The winner of each electorate gets 1 parliament seat for their party, and the winner themselves become parliament members. |
-| Electorate seats   | Parliament seats to be allocated to each party from electorate winners. | The baseline of parliament size is 120. First, all independent candidates as the winner of their electorates directly have a parliament seat. Then, the remaining seats (less than or equal to 120) are allocated to eligible parties. To be eligible, a party should get at least 5% of all party ballots, or is the winner of at least 1 electorate. Seats allocation is processed by Sainte-Laguë highest-average method, based on the number of party ballots among all eligible parties. If quotients of multiple party are the same when allocating the last seat in Sainte-Laguë process, the election office draws one of them randomly. The party will list party members to become parliament members for these seats. |
+| Electorate seats   | Parliament seats to be allocated to each party by proportion of party ballots. | The winner of each electorate gets 1 parliament seat for their party, and the winner themselves become parliament members. |
+| Proportional seats | Parliament seats to be allocated to each party from electorate winners. | The baseline of parliament size is 120. First, all independent candidates as the winner of their electorates directly have a parliament seat. Then, the remaining seats (less than or equal to 120) are allocated to eligible parties. To be eligible, a party should get at least 5% of all party ballots, or is the winner of at least 1 electorate. Seats allocation is processed by Sainte-Laguë highest-average method, based on the number of party ballots among all eligible parties. If quotients of multiple party are the same when allocating the last seat in Sainte-Laguë process, the election office draws one of them randomly. The party will list party members to become parliament members for these seats. |
 
 Tie happens in two cases:
 
@@ -52,7 +52,7 @@ The official tie-breaking algorithm is random drawing.
 >
 >   The eligibility "at least 5% of all party ballots" is based on all valid party votes nationwide, including valid votes for parties that ultimately fail to qualify, as a whole.
 >
->   When allocating parliament seats, however, proportions are based on only valid party votes for eligible parties, excluding votes for non-eligible parties, as a whole.
+>   When allocating parliament seats, however, proportions are based on only valid party votes for eligible parties, excluding votes for non-eligible parties, as a whole. The situation that no party is eligible is not defined.
 
 Overall, the number of parliament seats for a party equals to the maximum of the two rules. The electorate winners are prior to other party members to become parliament members. Therefore, if the number of electorates that a party wins is more than the number of parliament seats, overhanging happens, where the number of parliament seats is more than 120. Overhang does not reduce other parties’ allocations. In this case, they cannot list party members other than electorate winners to become parliament members.
 
@@ -327,7 +327,85 @@ $$
 $$
 The objective is bi-objective optimization
 $$
-\min (\alpha, \delta)
+\min_{\text{Pareto}} (\alpha, \delta)
 $$
 Use the same objective in two models: possible success model requires $x \in \underline{F}$, and guaranteed success model requires $x \in \overline{F}$.
+
+Denote this optimization problem as unrestricted master problem.
+
+## Solving method
+
+### Possible success
+
+Let the value of any $\eta$  in constraints be 0, then solve the unrestricted master problem.
+
+### Guaranteed success
+
+Define mutable $\mathcal{S} \subseteq \mathcal{H}$.
+
+Denote restricted master problem as an optimization model, where $\displaystyle \min_{\text{Lex}} (\alpha, \delta)$ is the objective function, $x$ is fixed and feasible $\forall \eta \in \mathcal{S}$.
+
+>   [!note]
+>
+>   Lexicographical minimization $\displaystyle \min_{\text{Lex}} (\alpha, \delta)$  is defined as follows.
+>
+>   First, reduce $\displaystyle \min_{\text{Lex}} (\alpha, \delta)$ to single objective $\min \alpha$, where $\delta$ is free. Let $\alpha^*$ be optimal solution of reduced objective.
+>
+>   Then, optimize $\min \delta \text{~s.t.~} \alpha = \alpha^*$ under the same constraints.
+>
+>   Therefore, the optimal solution of $\displaystyle \min_{\text{Lex}} (\alpha, \delta)$ is $(\alpha^*, \delta^*)$.
+
+>   [!note]
+>
+>   The restricted master problem is equivalent to unrestricted master problem when $\mathcal{S} = \mathcal{H}$.
+
+Let $x^*$ be the optimal solution of restricted master problem. Let $m(x^*, \eta)$ be the margin obtained by applying the election rules to $x^*$ and $\forall \eta \in \mathcal{H}$.
+
+The worst case strict majority margin is
+$$
+\begin{cases}
+\displaystyle \min_{\eta \in \mathcal{H}} m(x^*, \eta), \quad m_0 \le 0 \\
+\displaystyle \max_{\eta \in \mathcal{H}} m(x^*, \eta), \quad m_0 > 0
+\end{cases}
+$$
+Denote adversarial oracle as an optimization model, where worst case strict majority margin is the objective function, $x^*$ is given and fixed.
+
+The guaranteed success implies
+$$
+\begin{cases}
+\left[ \displaystyle \min_{\eta \in \mathcal{H}} m(x^*, \eta) \right] \ge 1, \quad m_0 \le 0 \\
+\left[ \displaystyle \max_{\eta \in \mathcal{H}} m(x^*, \eta) \right] \le 0, \quad m_0 > 0
+\end{cases}
+$$
+
+>   [!note]
+>
+>   Solving Pareto frontier can be explained by a sequence of lexicographical minimization process.
+>
+>   First solve $\displaystyle \min_{\text{Lex}} (\alpha, \delta)$ and find the optimal solution $(\alpha_1, \delta_1)$.
+>
+>   Then, iterate $k = 1, 2, ...$, for each $k$, solve
+>   $$
+>   \min_{\text{Lex}} (\alpha, \delta) \quad \text{s.t.~} \delta \le \delta_k - 1
+>   $$
+>   Denote the optimal solution as $(\alpha_{k+1}, \delta_{k+1})$.
+>
+>   Let $D = \delta_k - 1$.
+>
+>   Stop when the lexicographical minimization problem is infeasible.
+
+The solving process of unrestricted master problem under guaranteed success is as follows.
+
+Initially, let $\mathcal{S} = \{ \eta_\text{Lex} \}$, where $\eta_\text{Lex}$ means party $q$ has priority over $p$ if and only if party ID of $q$ is larger than $p$, for both Sainte-Laguë process and electorate winner $\forall e \in E$.
+
+For each iteration in lexicographical minimization process of restricted master problem,
+
+-   For scenario generation loop,
+    -   Solve this single objective restricted master problem and get $x^*$.
+    -   Solve adversarial oracle for this $x^*$.
+    -   If adversarial oracle find $\eta_0$ which makes objective of restricted master problem violates the guaranteed success implication, 
+        -   Add $\eta_0$ to $\mathcal{S}$. (It updates restricted master problem for next iteration.)
+    -   Otherwise, 
+        -   $x^*$ is a Pareto optimal point in Pareto frontier of unrestricted master problem in guaranteed success case.
+        -   Break scenario generation loop.
 

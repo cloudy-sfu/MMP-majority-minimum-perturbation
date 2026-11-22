@@ -190,6 +190,8 @@ activate_run.ps1
 debug.ps1
 pluto.ps1
 
+raw
+!raw/.placeholder
 results
 !results/.placeholder
 .vscode

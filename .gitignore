@@ -185,7 +185,6 @@ _debug.jl
 _activate.jl
 _pluto.jl
 local_depot
-.env
 activate_run.ps1
 debug.ps1
 pluto.ps1

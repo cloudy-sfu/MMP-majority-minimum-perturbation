@@ -1,0 +1,50 @@
+JLD2 data-format contract for the model
+
+JLD2 is saved by the following Julia program:
+
+jldsave(
+    "raw/model_data.jld2"; 
+    E, nE, P, nP, v, c, R, U,  # Input data
+    iota, N, m0  # Constant
+)
+
+Indexing convention:
+  All model-array indices are 1-based Julia positions, not database IDs.
+
+Party data:
+  P::Vector{Int64} (or Vector{Int}) contains database party IDs. These are
+  labels only; the mathematical model must not use their values as indices.
+  Use p = 1:nP to index party data.
+  v[p] is the baseline party-vote count for the p-th party in P.
+  Thus, v[j] corresponds to P[j].
+
+Electorate data:
+  E::Vector{String} contains database electorate IDs. These are labels only;
+  the mathematical model must not use their values as indices.
+  Use e = 1:nE to index electorate data.
+  The j-th electorate in E corresponds to c[j], R[j], and iota[j].
+
+Candidate-vote data:
+  c::Vector{Vector{Int64}} stores candidate-option vote counts by electorate.
+  R::Vector{Vector{Int64}} stores the corresponding option labels.
+  For every e and k, c[e][k] and R[e][k] describe the same option.
+  The position k is the correspondence between these arrays; do not assume
+  candidate options are identified by their vote counts.
+
+  Values in R[e] are party-array indices, not party database IDs:
+    - R[e][k] in 1:nP identifies the corresponding position in P.
+    - R[e][k] == 0 identifies an independent candidate option.
+  Repeated 0 values are allowed: each occurrence represents a separate
+  independent option. Do not deduplicate R[e] or use its values as unique
+  candidate identifiers. R[e] is sorted as supplied, with c[e] aligned to it.
+
+Union:
+  U::Vector{Int64} (or Vector{Int}) contains indices into P, not party IDs.
+  For example, U == [1, 5, 6] selects P[1], P[5], and P[6].
+
+Dimensions:
+  nP == length(P) == length(v)
+  nE == length(E) == length(c) == length(R) == length(iota)
+
+Constant:
+  N is the baseline parliament size; m0 is the baseline union majority margin.

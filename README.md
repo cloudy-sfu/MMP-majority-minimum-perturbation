@@ -18,9 +18,9 @@ Create and activate a Julia project environment.
 
 ## Usage
 
-### Database
-
 Voting results are saved in `main.sqlite`. [Database schema](./database_schema.md) 
+
+### Parliament seats
 
 To calculate parliament seats of each party based on preliminary results, run the following command.
 
@@ -48,4 +48,13 @@ This math optimization problem is designed for sensitivity analysis on prelimina
 
 [Election rules and model definition](./model.pdf)
 
+Ensure `results/parliament_seats_preliminary.csv` (refer to "Usage > Database" section) is up to date.
+
+Run the following command.
+
+```
+julia input_data.jl
+```
+
+It starts an interactive session to select the union of parties to analyze.
 

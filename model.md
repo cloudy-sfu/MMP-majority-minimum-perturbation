@@ -38,8 +38,8 @@ Two seats allocation rules are executed in parallel:
 
 | Allocated seats    | Definition                                                   | Process                                                      |
 | ------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| Proportional seats | Parliament seats to be allocated to each party by proportion of party ballots. | The winner of each electorate gets 1 parliament seat for their party, and the winner themselves become parliament members. |
-| Electorate seats   | Parliament seats to be allocated to each party from electorate winners. | The baseline of parliament size is 120. First, all independent candidates as the winner of their electorates directly have a parliament seat. Then, the remaining seats (less than or equal to 120) are allocated to eligible parties. To be eligible, a party should get at least 5% of all party ballots, or is the winner of at least 1 electorate. Seats allocation is processed by Sainte-Laguë highest-average method, based on the number of party ballots among all eligible parties. If quotients of multiple party are the same when allocating the last seat in Sainte-Laguë process, the election office draws one of them randomly. The party will list party members to become parliament members for these seats. |
+| Electorate seats   | Parliament seats to be allocated to each party from electorate winners. | The winner of each electorate gets 1 parliament seat for their party, and the winner themselves become parliament members. |
+| Proportional seats | Parliament seats to be allocated to each party by proportion of party ballots. | The baseline of parliament size is 120. First, all independent candidates as the winner of their electorates directly have a parliament seat. Then, the remaining seats (less than or equal to 120) are allocated to eligible parties. To be eligible, a party should get at least 5% of all party ballots, or is the winner of at least 1 electorate. Seats allocation is processed by Sainte-Laguë highest-average method, based on the number of party ballots among all eligible parties. If quotients of multiple party are the same when allocating the last seat in Sainte-Laguë process, the election office draws one of them randomly. The party will list party members to become parliament members for these seats. |
 
 Tie happens in two cases:
 
@@ -162,8 +162,8 @@ $$
 >
 >   Final votes must be non-negative
 >   $$
->   v'(p)\ge0, \quad p\in P \\
->   c'(e,r)\ge0, \qquad e\in E,\ r\in R_e
+>   v'(p)\ge 0, \quad p\in P \\
+>   c'(e,r)\ge 0, \quad e\in E,\ r\in R_e
 >   $$
 >   These constraints are not necessary, because they're satisfied anyway
 >   $$
@@ -256,6 +256,10 @@ Only eligible parties participates in the allocation
 $$
 z(p,k)\le g(p), \quad p\in P, ~k=1,...,N
 $$
+Let $y(p, k)$ indicate that party $p \in P$ is eligible but quotient $v'(p) \over 2k-1$ is NOT allocated a proportional seat, therefore
+$$
+y(p,k) = g(p) - z(p,k), \quad p\in P, ~k=1,...,N
+$$
 For a specific party $p \in P$, the quotients are indexed in order ($k = 1, ..., N$), therefore seats are allocated from the first, continuously, in order. If the previous quotient is not allocated a seat, the subsequent quotient is impossible to be allocated a seat.
 $$
 z(p,k+1)\le z(p,k), \quad p\in P, ~k=1,...,N-1
@@ -268,25 +272,83 @@ All the proportional seats are exactly allocated
 $$
 \sum_{p\in P}\sum_{k=1}^{N}z(p,k)=B
 $$
-A selected quotient must be larger than or equal to every unselected quotient
-$$
-z(p,k)=1 \and z(q,j)=0 \and g(q)=1 \\
-p,q\in P, \quad p\ne q, \quad k,j=1,...,N \\
-\implies \begin{cases}
-\frac{v'(p)}{2k-1} \ge \frac{v'(q)}{2j-1}, \quad \text{if~} \eta(p, q) = 0  \\
-\frac{v'(p)}{2k-1} > \frac{v'(q)}{2j-1}, \quad \text{if~} \eta(p, q) = 1  \\
-\end{cases} \\
-\overset{\text{linearity}}{\implies} (2j-1) v'(p)  - (2k-1) v'(q) \ge \eta(p, q)
-$$
-
->   [!note]
->
->   $g(p) = 1$ is redundant, because $z(p,k) \le g(p)$, when $z(p, k) = 1$ there must be $g(p) = 1$.
-
 The number of proportional seats each party is allocated is
 $$
 s(p)=\sum_{k=1}^{N}z(p,k) \quad p \in P
 $$
+Let $\phi(p) \in \{0, 1\}, p \in P$ be a tie-breaking flag. If quotient ${v'(p) \over 2k-1} = \theta$, party $p$ is allocated a seat if and only if $\phi(p) = 1$.
+
+There is $\phi(q) \ge \phi(p)$ for all distinct $p, q \in P$ with $\eta(p, q) = 1$. 
+$$
+\varphi(q) \ge \varphi(p) + \eta(p,q) - 1, \quad p,q\in P, p\ne q
+$$
+Let $\theta \ge 0$ be the threshold of Sainte-Laguë quotient. If the quotient is larger than $\theta$, the corresponding party is allocated a seat. If the quotient equals to $\theta$, whether the corresponding party is allocated a seat depends on tie-priority.
+
+Let $\gamma = {1 \over 2N-1}$ be the strictness gap of the Sainte-Laguë threshold.
+
+The corresponding party is allocated a seat if and only if the quotient larger or equal to threshold $\theta$. Only when the party has priority to the threshold $\phi(\cdot) = 1$, the quotient can be equal to the threshold.
+$$
+z(p,k)=1 \implies v'(p) - (2k-1)\theta \ge \gamma\,(1-\varphi(p)) \\
+y(p,k)=1 \implies v'(p) - (2k-1)\theta \le -\gamma\,\varphi(p)
+$$
+
+
+>   [!note]
+>
+>   A selected quotient must be larger than or equal to every unselected quotient
+>   $$
+>   z(p,k)=1 \and z(q,j)=0 \and g(q)=1 \\
+>   p,q\in P, \quad p\ne q, \quad k,j=1,...,N \\
+>   \implies \begin{cases}
+>   \frac{v'(p)}{2k-1} \ge \frac{v'(q)}{2j-1}, \quad \text{if~} \eta(p, q) = 0  \\
+>   \frac{v'(p)}{2k-1} > \frac{v'(q)}{2j-1}, \quad \text{if~} \eta(p, q) = 1  \\
+>   \end{cases} \\
+>   \overset{\text{linearity}}{\implies} (2j-1) v'(p)  - (2k-1) v'(q) \ge \eta(p, q)
+>   $$
+>   The currently used constraint is better than pairwise for every allocated $(p,k)$ and unallocated eligible $(q,j)$, using $2|P|N$ instead of $|P|^2N^2$ conditional constraints.
+>
+>   Set $\theta$ equal to the last allocated quotient $\theta=v'(q)/(2j-1)$, and set $\varphi(p)=1$ for parties with priority at least as high as $q$ (including $q$).
+>
+>   Start with the original quotient $Q_{p,k}={v'(p)\over 2k-1}$. Subtracting the threshold gives
+>   $$
+>   \begin{aligned}
+>   Q_{p,k}- \theta & = \frac{v'(p)}{2k-1}-\frac{v'(q)}{2j-1} \\
+>   & = \frac{(2j-1)v'(p)-(2k-1)v'(q)}{(2k-1)(2j-1)}
+>   \end{aligned} \\
+>   p,q\in P, \quad p\ne q, \quad k,j=1,...,N 
+>   $$
+>   The original Sainte-Laguë comparison is between $Q_{p,k}={v'(p) \over 2k-1}$ and the threshold $\theta$. To see how that comparison becomes the expression in the constraints, multiply the difference by $2k-1$.
+>   $$
+>   \begin{aligned}
+>   (2k-1)(Q_{p,k}-\theta)
+>   &= (2k-1)\left(\frac{v'(p)}{2k-1}-\theta\right)\\
+>   &= v'(p)-(2k-1)\theta
+>   \end{aligned}
+>   $$
+>   Since $2k-1>0$, this does not change the sign. The expression in the constraints is positive when the quotient is above the cutoff, zero when it is tied, and negative when it is below the threshold.
+>
+>   If not $v'(p) = v'(q)$, the difference is at least 1, so the quotient satisfies
+>   $$
+>   v'(p)-(2k-1)\theta \ge {1 \over 2j-1} \ge {1 \over 2N-1} = \gamma
+>   $$
+>   Proof:
+>
+>   Let two quotient of party $p, q$ both equal $\theta$, and $q$ has priority over $p$ with $\eta(p, q) = 1$.  If party $p$ is allocated a seat while $q$ isn't. The constraint would lead to
+>   $$
+>   z(p,k) = 1, {v'(p) \over 2k-1} = \theta \Rightarrow \phi(p) = 1 \\
+>   y(q,k) = 1, {v'(q) \over 2j-1} = \theta \Rightarrow \phi(p) = 0
+>   $$
+>   It would violate constraint $\phi(q) \ge \phi(p)$.
+>
+>   Therefore, party $p$ is forced to lose the seat and $q$ get this seat.
+
+> [!note]
+>
+> Under New Zealand’s election rules, a party on the party ballot can qualify for proportional allocation by winning an electorate, even if it falls below the 5% party-vote threshold. In this model, party and electorate votes are modified independently, so the optimizer can reduce a party’s nationwide party vote to zero while it still wins an electorate. The party remains eligible and keeps the electorate seats it wins.
+>
+> If at least one eligible party has positive party votes, it supplies $N$ positive Sainte-Laguë quotients for at most $N$ seats. A zero-vote party’s quotients are all zero, so none reaches the cutoff. That party receives no proportional seats ($s(p)=0$), but keeps its electorate seats ($t(p)=d(p)$).
+>
+> A positive baseline party-vote total stays positive because transfers preserve the total and additions only increase it. But a positive total does not guarantee that any **eligible** party has positive votes: all party votes could belong to parties that neither reach 5% nor win an electorate. If seats remain to be allocated and the only eligible parties have zero votes, all their quotients tie at zero. The model’s single flag $\varphi(p)$ cannot select some but not all of a party’s equal quotients, so the formulation does not handle that case in general. This situation cannot happen when $|P| \le 20$.
 
 ### Parliament seats
 
@@ -329,6 +391,8 @@ The objective is bi-objective optimization
 $$
 \min_{\text{Pareto}} (\alpha, \delta)
 $$
+where the Pareto frontier is defined as the extreme supported points: the vertices of the lower-left convex hull of all achievable $(\alpha, \delta)$. Points on a hull edge between two vertices, such as $(\alpha+1, \delta-1)$ on a segment of slope -1, and points strictly inside the hull are excluded.
+
 Use the same objective in two models: possible success model requires $x \in \underline{F}$, and guaranteed success model requires $x \in \overline{F}$.
 
 Denote this optimization problem as unrestricted master problem.
@@ -337,7 +401,7 @@ Denote this optimization problem as unrestricted master problem.
 
 ### Possible success
 
-Let the value of any $\eta$  in constraints be 0, then solve the unrestricted master problem.
+Let the value of any $\eta$  in constraints be 0, then solve the unrestricted master problem. Then $\varphi$ is unconstrained, so every tie resolution is admissible; equivalently $\gamma = 0$ and $\varphi$ is omitted.
 
 ### Guaranteed success
 
@@ -368,7 +432,7 @@ $$
 \displaystyle \max_{\eta \in \mathcal{H}} m(x^*, \eta), \quad m_0 > 0
 \end{cases}
 $$
-Denote adversarial oracle as an optimization model, where worst case strict majority margin is the objective function, $x^*$ is given and fixed.
+Denote adversarial oracle as an optimization model, where worst case strict majority margin is the objective function, $x^*$ is given and fixed. It is equivalent to the possible-success constraint set where $\forall \eta(\cdot) = 0$ with $x = x^*$.
 
 The guaranteed success implies
 $$
@@ -380,19 +444,17 @@ $$
 
 >   [!note]
 >
->   Solving Pareto frontier can be explained by a sequence of lexicographical minimization process.
+>   The Pareto frontier is solved by dichotomic weighted-sum search.
 >
->   First solve $\displaystyle \min_{\text{Lex}} (\alpha, \delta)$ and find the optimal solution $(\alpha_1, \delta_1)$.
+>   First solve $\displaystyle \min_{\text{Lex}} (\alpha, \delta)$ and $\displaystyle \min_{\text{Lex}} (\delta, \alpha)$, giving the two terminal points. If they differ, let the queue $\mathcal Q$ contain this pair.
 >
->   Then, iterate $k = 1, 2, ...$, for each $k$, solve
+>   Then, take a pair $(\alpha_\text{L}, \delta_\text{L}), (\alpha_\text{R}, \delta_\text{R}), \alpha_\text{L} < \alpha_\text{R}$. Let $\omega_\alpha = \delta_\text{L} - \delta_\text{R}, \omega_\delta = \alpha_\text{R} - \alpha_\text{L}$ and solve
 >   $$
->   \min_{\text{Lex}} (\alpha, \delta) \quad \text{s.t.~} \delta \le \delta_k - 1
+>   \min\ \omega_\alpha \alpha + \omega_\delta \delta
 >   $$
->   Denote the optimal solution as $(\alpha_{k+1}, \delta_{k+1})$.
+>   If the optimum $(\alpha_\text{M}, \delta_\text{M})$ satisfies $\omega_\alpha \alpha_\text{M} + \omega_\delta \delta_\text{M} < \omega_\alpha \alpha_\text{L} + \omega_\delta \delta_\text{L}$, it is a new supported point, and both pairs $(\alpha_\text{L}, \delta_\text{L}), (\alpha_\text{M}, \delta_\text{M})$ and $(\alpha_\text{M}, \delta_\text{M}), (\alpha_\text{R}, \delta_\text{R})$ are added to $\mathcal Q$. Otherwise, no extreme supported point lies between $(\alpha_\text{L}, \delta_\text{L})$ and $(\alpha_\text{R}, \delta_\text{R})$.
 >
->   Let $D = \delta_k - 1$.
->
->   Stop when the lexicographical minimization problem is infeasible.
+>   Finally, remove points that are not strict vertices of the lower-left convex hull.
 
 The solving process of unrestricted master problem under guaranteed success is as follows.
 
@@ -406,6 +468,6 @@ For each iteration in lexicographical minimization process of restricted master 
     -   If adversarial oracle find $\eta_0$ which makes objective of restricted master problem violates the guaranteed success implication, 
         -   Add $\eta_0$ to $\mathcal{S}$. (It updates restricted master problem for next iteration.)
     -   Otherwise, 
-        -   $x^*$ is a Pareto optimal point in Pareto frontier of unrestricted master problem in guaranteed success case.
+        -   $x^*$ is a Pareto point in Pareto frontier of unrestricted master problem in guaranteed success case.
         -   Break scenario generation loop.
 

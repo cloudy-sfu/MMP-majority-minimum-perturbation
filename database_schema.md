@@ -4,7 +4,7 @@
 
 `*_preliminary`: Preliminary results (2026-11-07 https://vote.nz/2026-general-election/about/overview/key-dates)
 
-
+`*_official`: Official results (2026-11-27)
 
 Table `parties_rnz`: All registered parties.
 
@@ -23,7 +23,7 @@ Table `electorates_rnz_preliminary`: All electorates.
 | name        | text      | Electorate name.                                             |
 | isMaori     | integer   | 0: general electorate; 1: Māori electorate.                  |
 
-Table `candidate_votes_rnz_preliminary`:  Results of candidate votes.
+Table `candidate_votes_rnz_preliminary` & `candidate_votes_rnz_official`:  Results of candidate votes.
 
 | Column name   | Data type | Description                                                  |
 | ------------- | --------- | ------------------------------------------------------------ |
@@ -33,7 +33,7 @@ Table `candidate_votes_rnz_preliminary`:  Results of candidate votes.
 | party_id      | integer   | The party of the candidate. Null if the candidate is independent.<br />Meaning of party ID refers to `partyId` column in `parties_rnz` table. |
 | votes         | integer   | Number of votes the candidate gets in this electorate.       |
 
-Table `party_votes_rnz_preliminary`: Results of party votes.
+Table `party_votes_rnz_preliminary` & `party_votes_rnz_official`: Results of party votes.
 
 | Column name   | Data type | Description                                                  |
 | ------------- | --------- | ------------------------------------------------------------ |

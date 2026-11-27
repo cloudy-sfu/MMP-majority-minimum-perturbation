@@ -48,11 +48,10 @@ This math optimization problem is designed for sensitivity analysis on prelimina
 
 [Election rules and model definition](./model.pdf)
 
-Ensure `results/parliament_seats_preliminary.csv` (refer to "Usage > Database" section) is up to date.
-
 Run the following command.
 
 ```
+python calc_parliament_seats_preliminary.py
 julia input_data.jl
 ```
 
